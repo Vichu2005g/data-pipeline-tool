@@ -1,0 +1,12 @@
+# Configuration for Data Pipeline Tool
+
+paths:
+  data_raw: "data/raw"
+  data_processed: "data/processed"
+  reports: "reports"
+  logs: "logs/pipeline.log"
+  db: "db/insights.db"
+
+processing:
+  anomaly_threshold: 2.0  # Z-score threshold for anomaly detection
+  rolling_window: 7       # Days for rolling average
