@@ -6,3 +6,4 @@ pyyaml
 sqlalchemy
 scikit-learn
 openpyxl
+flake8
