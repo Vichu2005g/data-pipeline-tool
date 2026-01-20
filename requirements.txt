@@ -7,3 +7,4 @@ sqlalchemy
 scikit-learn
 openpyxl
 flake8
+tabulate

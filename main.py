@@ -4,10 +4,9 @@ import sys
 from src.logger import setup_logger
 from src.sql_utils import DatabaseManager
 from src.ingestion import DataIngestor
-# Future imports for Teammate's work:
-# from src.cleaning import DataCleaner
-# from src.analysis import TrendAnalyzer
-# from src.reporting import ReportGenerator
+from src.cleaning import DataCleaner
+from src.analysis import TrendAnalyzer
+from src.reporting import ReportGenerator
 
 def main():
     # 1. Setup Logging
@@ -27,7 +26,10 @@ def main():
     try:
         db = DatabaseManager(config["paths"]["db"])
         ingestor = DataIngestor(logger)
-        logger.info("Infrastructure initialized (DB, Ingestion).")
+        cleaner = DataCleaner(logger)
+        analyzer = TrendAnalyzer(logger, config)
+        reporter = ReportGenerator(logger, config)
+        logger.info("Infrastructure initialized (DB, Ingestion, Cleaning, Analysis, Reporting).")
     except Exception as e:
         logger.error(f"Infrastructure initialization failed: {e}")
         return
@@ -53,19 +55,22 @@ def main():
             # --- STEP A: INGESTION ---
             df_raw = ingestor.ingest_file(file_path)
             
-            # --- STEP B: CLEANING (TODO: Teammate) ---
-            # df_clean = cleaner.clean_data(df_raw)
-            # logger.info("Data cleaned.")
+            # --- STEP B: CLEANING ---
+            df_clean = cleaner.clean_data(df_raw)
+            logger.info(f"Data cleaned. Rows: {len(df_clean)}")
 
             # --- STEP C: STORAGE ---
-            # Store raw data for audit (optional) or cleaned data later
-            db.insert_data(df_raw, "raw_data_staging")
+            # Store cleaned data
+            db.insert_data(df_clean, "cleaned_data_staging")
             
-            # --- STEP D: ANALYSIS (TODO: Teammate) ---
-            # insights = analyzer.analyze(df_clean)
+            # --- STEP D: ANALYSIS ---
+            stats = analyzer.compute_stats(df_clean)
+            anomalies = analyzer.detect_anomalies(df_clean)
+            logger.info(f"Analysis complete. Found {len(anomalies)} anomalies.")
             
-            # --- STEP E: REPORTING (TODO: Teammate) ---
-            # reporter.generate_report(insights)
+            # --- STEP E: REPORTING ---
+            report_path = reporter.generate_report(df_clean, stats, anomalies, file_name)
+            logger.info(f"Report generated: {report_path}")
             
             logger.info(f"Finished processing {file_name}.")
             
